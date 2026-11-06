@@ -170,6 +170,12 @@ fn scan_and_attach_devices(
         let supported = device.supported_keys();
         let has_mouse_btn = supported.map_or(false, |keys| keys.contains(evdev::Key::BTN_LEFT));
         let has_letter_keys = supported.map_or(false, |keys| keys.contains(evdev::Key::KEY_A));
+        // Touchpads/tablets/touchscreens report absolute axes that the virtual device can't forward
+        let has_abs_axes = device.supported_absolute_axes().map_or(false, |axes| {
+            axes.contains(evdev::AbsoluteAxisType::ABS_X)
+                || axes.contains(evdev::AbsoluteAxisType::ABS_MT_POSITION_X)
+        }) || name_lower.contains("touchpad");
+
         // Skip devices that are clearly not mice (no mouse button, or keyboard-only)
         if !has_mouse_btn || (has_letter_keys && !has_mouse_btn) {
             continue;
@@ -206,7 +212,7 @@ fn scan_and_attach_devices(
                 let vid_pid = format!("{:04x}:{:04x}", input_id.vendor(), input_id.product());
 
                 let is_receiver_only = name_lower.ends_with("receiver") && !name_lower.contains("mouse");
-                let should_grab = has_mouse_btn && !has_letter_keys && !is_receiver_only;
+                let should_grab = has_mouse_btn && !has_letter_keys && !has_abs_axes && !is_receiver_only;
 
                 // Never grab the physical device unless we can forward its events;
                 // otherwise (e.g. /dev/uinput not yet accessible at boot) the mouse freezes.
