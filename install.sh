@@ -106,7 +106,7 @@ echo -e "${GREEN}🔒 Configuring uinput / evdev permissions for Bluetooth & USB
 TMP_RULE=$(mktemp)
 cat << 'EOF' > "$TMP_RULE"
 # udev rules for Bo-Ring (secure seat-scoped access to /dev/uinput, evdev and hidraw for Bluetooth & USB mice)
-KERNEL=="uinput", SUBSYSTEM=="misc", OPTIONS+="static_node=uinput", TAG+="uaccess"
+KERNEL=="uinput", SUBSYSTEM=="misc", OPTIONS+="static_node=uinput", GROUP="input", MODE="0660", TAG+="uaccess"
 KERNEL=="event*", SUBSYSTEM=="input", GROUP="input", MODE="0660", TAG+="uaccess"
 KERNEL=="hidraw*", SUBSYSTEM=="hidraw", GROUP="input", MODE="0660", TAG+="uaccess"
 EOF

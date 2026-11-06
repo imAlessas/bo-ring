@@ -170,7 +170,6 @@ fn scan_and_attach_devices(
         let supported = device.supported_keys();
         let has_mouse_btn = supported.map_or(false, |keys| keys.contains(evdev::Key::BTN_LEFT));
         let has_letter_keys = supported.map_or(false, |keys| keys.contains(evdev::Key::KEY_A));
-
         // Skip devices that are clearly not mice (no mouse button, or keyboard-only)
         if !has_mouse_btn || (has_letter_keys && !has_mouse_btn) {
             continue;
@@ -208,6 +207,15 @@ fn scan_and_attach_devices(
 
                 let is_receiver_only = name_lower.ends_with("receiver") && !name_lower.contains("mouse");
                 let should_grab = has_mouse_btn && !has_letter_keys && !is_receiver_only;
+
+                // Never grab the physical device unless we can forward its events;
+                // otherwise (e.g. /dev/uinput not yet accessible at boot) the mouse freezes.
+                if should_grab && !keyboard::init_virtual_keyboard() {
+                    eprintln!("⚠️ uinput unavailable, not grabbing {:?}; will retry.", path_clone);
+                    let mut lock = monitored_paths_thread.lock().unwrap();
+                    lock.remove(&path_clone);
+                    return;
+                }
 
                 let is_grabbed = if should_grab {
                     match dev.grab() {

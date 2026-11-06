@@ -213,13 +213,18 @@ pub fn passthrough_event(ev: &InputEvent) {
     }
 }
 
-pub fn init_virtual_keyboard() {
+pub fn init_virtual_keyboard() -> bool {
     let mut guard = VIRTUAL_KEYBOARD.lock().unwrap();
     if guard.is_none() {
-        if let Ok(dev) = create_virtual_keyboard() {
-            *guard = Some(dev);
+        match create_virtual_keyboard() {
+            Ok(dev) => *guard = Some(dev),
+            Err(e) => {
+                eprintln!("⚠️ Cannot create virtual uinput device: {}", e);
+                return false;
+            }
         }
     }
+    true
 }
 
 pub fn send_key_combo(keys: &[String]) {
