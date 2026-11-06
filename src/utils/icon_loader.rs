@@ -10,7 +10,19 @@ pub struct TextureCache {
 pub fn setup_custom_fonts(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
 
+    // Bundled monochrome emoji font (OFL): egui cannot render colour bitmap fonts such as NotoColorEmoji.
+    fonts.font_data.insert(
+        "bundled_noto_emoji".to_owned(),
+        egui::FontData::from_static(include_bytes!("../../assets/fonts/NotoEmoji.ttf")),
+    );
+    for family in [egui::FontFamily::Proportional, egui::FontFamily::Monospace] {
+        fonts.families.entry(family).or_default().push("bundled_noto_emoji".to_owned());
+    }
+
     let font_paths = [
+        "/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf",
+        "/usr/share/fonts/truetype/noto/NotoSansSymbols-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/gdouros-symbola/Symbola.ttf",
         "/usr/share/fonts/google-noto-emoji-fonts/NotoEmoji-Regular.ttf",
         "/usr/share/fonts/google-noto/NotoSansSymbols2-Regular.ttf",
@@ -45,10 +57,8 @@ pub fn setup_custom_fonts(ctx: &egui::Context) {
         }
     }
 
-    if loaded_count > 0 {
-        ctx.set_fonts(fonts);
-        println!("✅ Emoji and symbol fonts loaded ({}) in egui.", loaded_count);
-    }
+    ctx.set_fonts(fonts);
+    println!("✅ Emoji and symbol fonts loaded ({} system + bundled) in egui.", loaded_count);
 }
 
 impl TextureCache {
