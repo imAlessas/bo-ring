@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+- Touchpads (and other devices with absolute axes) are no longer exclusively grabbed, which left them dead while the service ran. Their button events are still monitored without grabbing.
+
+---
+
 ## [0.2.0] - 2026-09-11
 
 ### Added
